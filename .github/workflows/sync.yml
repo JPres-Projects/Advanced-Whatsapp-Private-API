@@ -1,0 +1,37 @@
+name: Auto Sync with Upstream
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Every day at midnight
+  workflow_dispatch:     # Can be triggered manually
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+      - name: Add upstream and fetch
+        run: |
+          git remote add upstream https://github.com/aldinokemal/go-whatsapp-web-multidevice.git
+          git fetch upstream
+          
+      - name: Merge upstream changes but keep our files
+        run: |
+          cp README.md README_backup.md
+          git merge upstream/main --no-edit || true
+          cp README_backup.md README.md
+          rm README_backup.md
+          git checkout upstream/main -- readme.md
+          mv readme.md INTRO.md
+          
+      - name: Commit and push changes
+        run: |
+          git add .
+          git commit -m "Auto-sync: Code updated, README preserved, INTRO.md updated" || exit 0
+          git push
