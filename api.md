@@ -1,276 +1,244 @@
-# WhatsApp Private Number API - Complete API Documentation
+# WhatsApp Private Number API - COMPLETE API Documentation
 
-## 🔗 Complete API Endpoints with Full CURL Examples
+## 🔗 Complete API Endpoints with Explanations
 
 ### 🔹 App / Session Management
 
-📖 For full instructions, check the [`README.md`](./README.md).  
-It explains how to **deploy this API** and how to **expose it via Cloudflare**,  
-so you can use it from any server or instance under your control!
-
-
-#### Login with QR Code
+#### Login with QR Code (Insert your subdomain.domain/path)
 ```bash
-# Display QR code in terminal or browser
 curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/app/login
 ```
+**What it does:** Shows QR code to scan with your WhatsApp mobile app to connect this API to your account
 
-#### Login with Pairing Code
+#### Login with Pairing Code  
 ```bash
-# Generate 8-digit pairing code for phone login
-curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/app/login-with-code
-
-# Enter the code in WhatsApp > Linked Devices > Link with Phone Number
+curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/app/login-with-code?phone=628912344551"
 ```
+**What it does:** Generates an 8-digit code to type into WhatsApp instead of scanning QR (useful for remote setup)
 
-#### Logout Session
+#### Logout
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/app/logout
 ```
+**What it does:** Disconnects the API from your WhatsApp account (like removing a linked device)
 
-#### Reconnect Session
+#### Reconnect
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/app/reconnect
 ```
+**What it does:** Fixes connection issues without having to scan QR code again
 
-#### Get Linked Devices
+#### Get Devices
 ```bash
 curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/app/devices
 ```
+**What it does:** Lists all devices connected to your WhatsApp account (phones, computers, this API)
 
-### 🔹 User Information
-
-#### Get User Info
+#### Get Connection Status
 ```bash
-curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/user/info?phone=4917612345678"
-
-# Alternative with JID
-curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/user/info?jid=4917612345678@s.whatsapp.net"
+curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/app/status
 ```
+**What it does:** Checks if the API is currently connected to WhatsApp or disconnected
 
-#### Get Profile Picture
-```bash
-curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/user/avatar?phone=4917612345678"
-
-# With preview option
-curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/user/avatar?phone=4917612345678&is_preview=true"
-```
-
-#### Check if Number has WhatsApp
-```bash
-curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/user/check?phone=4917612345678"
-```
-
-#### Get Business Profile
-```bash
-curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/user/business-profile?phone=4917612345678"
-```
-
-#### Get My Contacts
-```bash
-curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/user/my/contacts
-```
-
-#### Get My Groups
-```bash
-curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/user/my/groups
-```
-
-#### Get My Privacy Settings
-```bash
-curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/user/my/privacy
-```
-
-### 🔹 Sending Messages (All Options)
+### 🔹 Send Messages
 
 #### Send Text Message
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/message \
   -H "Content-Type: application/json" \
   -d '{
-    "phone": "4917612345678",
-    "message": "Hello from API!",
-    "reply_message_id": "false_120363xxx@g.us_xxx",  # Optional: Reply to specific message
-    "view_once": false  # Optional: View once message
+    "phone": "6289685028129@s.whatsapp.net",
+    "message": "Hello from API",
+    "reply_message_id": "3EB089B9D6ADD58153C561"  # Optional: reply to specific message
   }'
 ```
+**What it does:** Sends a regular text message, optionally as a reply to another message (shows "replied to" in chat)
 
-#### Send Image
+#### Send Image with URL Support
 ```bash
+# Upload image from your computer
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/image \
   -H "Content-Type: multipart/form-data" \
-  -F "phone=4917612345678" \
+  -F "phone=6289685028129@s.whatsapp.net" \
   -F "caption=Check this image!" \
-  -F "view_once=true" \
-  -F "compress=false" \
-  -F "reply_message_id=false_120363xxx@g.us_xxx" \
-  -F "image=@/path/to/image.jpg"
+  -F "view_once=false" \
+  -F "image=@/path/to/image.jpg" \
+  -F "compress=false"
 
-# Alternative with base64
+# Send image from internet URL
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/image \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "4917612345678",
-    "caption": "Amazing picture!",
-    "image": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
-    "view_once": true,
-    "compress": false
-  }'
-```
-
-#### Send Audio/Voice Message
-```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/audio \
   -H "Content-Type: multipart/form-data" \
-  -F "phone=4917612345678" \
-  -F "audio=@/path/to/audio.mp3" \
-  -F "ptt=true"  # Optional: true for voice note, false for audio file
+  -F "phone=6289685028129@s.whatsapp.net" \
+  -F "caption=Check this image!" \
+  -F "image_url=https://example.com/image.jpg" \
+  -F "view_once=true" \
+  -F "compress=false"
 ```
+**What it does:** Sends an image with optional caption. `view_once=true` makes it disappear after viewing (like Snapchat)
 
-#### Send Video
+#### Send Video with URL Support
 ```bash
+# Upload video from computer
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/video \
   -H "Content-Type: multipart/form-data" \
-  -F "phone=4917612345678" \
-  -F "caption=Watch this video!" \
-  -F "view_once=true" \
-  -F "compress=true" \
-  -F "video=@/path/to/video.mp4"
+  -F "phone=6289685028129@s.whatsapp.net" \
+  -F "caption=Check this video" \
+  -F "video=@/path/to/video.mp4" \
+  -F "view_once=false" \
+  -F "compress=true"
+
+# Send video from internet URL
+curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/video \
+  -H "Content-Type: multipart/form-data" \
+  -F "phone=6289685028129@s.whatsapp.net" \
+  -F "caption=Check this video" \
+  -F "video_url=https://example.com/video.mp4" \
+  -F "view_once=false" \
+  -F "compress=true"
 ```
+**What it does:** Sends a video with caption. `compress=true` reduces file size for faster sending
+
+#### Send Audio with URL Support
+```bash
+# Upload audio file
+curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/audio \
+  -H "Content-Type: multipart/form-data" \
+  -F "phone=6289685028129@s.whatsapp.net" \
+  -F "audio=@/path/to/audio.mp3"
+
+# Send audio from URL
+curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/audio \
+  -H "Content-Type: multipart/form-data" \
+  -F "phone=6289685028129@s.whatsapp.net" \
+  -F "audio_url=https://example.com/audio.mp3"
+```
+**What it does:** Sends audio file that shows up with play button in chat
 
 #### Send Document
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/document \
   -H "Content-Type: multipart/form-data" \
-  -F "phone=4917612345678" \
-  -F "document=@/path/to/document.pdf" \
-  -F "filename=Report_2024.pdf"  # Optional: Custom filename
+  -F "phone=6289685028129@s.whatsapp.net" \
+  -F "document=@/path/to/document.pdf"
 ```
+**What it does:** Sends any file (PDF, ZIP, etc.) as downloadable document
 
 #### Send Location
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/location \
   -H "Content-Type: application/json" \
   -d '{
-    "phone": "4917612345678",
-    "latitude": 52.520008,
-    "longitude": 13.404954,
-    "name": "Brandenburg Gate",  # Optional
-    "address": "Pariser Platz, 10117 Berlin",  # Optional
-    "url": "https://maps.google.com/?q=52.520008,13.404954"  # Optional
+    "phone": "6289685028129@s.whatsapp.net",
+    "latitude": "37.4220041",
+    "longitude": "-122.0862515"
   }'
 ```
+**What it does:** Sends a map location pin that opens in Google Maps when clicked
 
-#### Send Contact Card
+#### Send Contact
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/contact \
   -H "Content-Type: application/json" \
   -d '{
-    "phone": "4917612345678",
+    "phone": "6289685028129@s.whatsapp.net",
     "contact_name": "John Doe",
-    "contact_phone": "4917698765432",
-    "contact_email": "john@example.com",  # Optional
-    "contact_org": "Acme Corp"  # Optional
+    "contact_phone": "6289685028129"
   }'
 ```
+**What it does:** Sends a contact card that can be saved directly to phone's contacts
 
 #### Send Link with Preview
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/link \
   -H "Content-Type: application/json" \
   -d '{
-    "phone": "4917612345678",
-    "link": "https://github.com/aldinokemal/go-whatsapp-web-multidevice",
-    "caption": "Check out this amazing WhatsApp API!"  # Optional
+    "phone": "6289685028129@s.whatsapp.net",
+    "link": "https://google.com",
+    "caption": "Check this link"
   }'
 ```
+**What it does:** Sends a link that shows preview thumbnail and description (like when you paste a link)
 
-#### Send Poll
+#### Send Poll  
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/poll \
   -H "Content-Type: application/json" \
   -d '{
-    "phone": "4917612345678",
-    "question": "What is your favorite programming language?",
-    "options": ["Python", "JavaScript", "Go", "Java", "Other"],
-    "selectable_count": 1  # 0 for multiple choice, 1 for single choice
+    "phone": "6289685028129@s.whatsapp.net",
+    "question": "What is your favorite color?",
+    "options": ["Red", "Blue", "Green", "Yellow"],
+    "max_answer": 1
   }'
 ```
+**What it does:** Creates a voting poll. `max_answer=1` means single choice, higher number allows multiple selections
 
-#### Send Sticker
+#### Send Typing Indicator
 ```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/sticker \
-  -H "Content-Type: multipart/form-data" \
-  -F "phone=4917612345678" \
-  -F "sticker=@/path/to/sticker.webp"
-
-# With base64
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/sticker \
+# Show "typing..." status
+curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/chat-presence \
   -H "Content-Type: application/json" \
   -d '{
-    "phone": "4917612345678",
-    "sticker": "data:image/webp;base64,UklGRg..."
+    "phone": "6289685028129@s.whatsapp.net",
+    "action": "start"
+  }'
+
+# Remove "typing..." status
+curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/chat-presence \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "6289685028129@s.whatsapp.net",
+    "action": "stop"
   }'
 ```
+**What it does:** Shows or hides "typing..." indicator under your name in their chat
 
 ### 🔹 Message Management
 
-#### Forward Message
+#### Delete Message for Me
 ```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/message/forward \
+curl -X POST "https://whatsapp-privateapi-1-503.yourdomain.com/message/3EB089B9D6ADD58153C561/delete" \
   -H "Content-Type: application/json" \
-  -d '{
-    "message_id": "false_120363xxx@g.us_3EB0xxx",
-    "phone": "4917612345678"
-  }'
+  -d '{"phone":"6289685024051@s.whatsapp.net"}'
 ```
+**What it does:** Deletes message only from your chat view (others still see it)
 
-#### Revoke Message (Delete for Everyone)
+#### Delete Message for Everyone
 ```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/message/false_120363xxx@g.us_3EB0xxx/revoke \
+curl -X POST "https://whatsapp-privateapi-1-503.yourdomain.com/message/3EB089B9D6ADD58153C561/revoke" \
   -H "Content-Type: application/json" \
-  -d '{
-    "phone": "4917612345678"
-  }'
+  -d '{"phone":"6289685024051@s.whatsapp.net"}'
 ```
-
-#### Delete Message (Local Only)
-```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/message/false_120363xxx@g.us_3EB0xxx/delete \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "4917612345678"
-  }'
-```
+**What it does:** Deletes message for all participants (shows "This message was deleted")
 
 #### React to Message
 ```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/message/false_120363xxx@g.us_3EB0xxx/reaction \
+curl -X POST "https://whatsapp-privateapi-1-503.yourdomain.com/message/3EB089B9D6ADD58153C561/reaction" \
   -H "Content-Type: application/json" \
   -d '{
-    "phone": "4917612345678",
-    "emoji": "👍"  # Any emoji or empty string to remove
+    "phone": "6289685024051@s.whatsapp.net",
+    "emoji": "👍"
   }'
 ```
+**What it does:** Adds emoji reaction to a message (like Facebook reactions)
 
 #### Edit Message
 ```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/message/false_120363xxx@g.us_3EB0xxx/update \
+curl -X POST "https://whatsapp-privateapi-1-503.yourdomain.com/message/3EB089B9D6ADD58153C561/update" \
   -H "Content-Type: application/json" \
   -d '{
-    "phone": "4917612345678",
-    "message": "This is the edited message text"
+    "phone": "6289685024051@s.whatsapp.net", 
+    "message": "Updated message text"
   }'
 ```
+**What it does:** Edits already sent message (shows "edited" label, only works within 15 minutes)
 
-#### Mark as Read
+#### Mark Message as Read
 ```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/message/false_120363xxx@g.us_3EB0xxx/read \
+curl -X POST "https://whatsapp-privateapi-1-503.yourdomain.com/message/3EB089B9D6ADD58153C561/read" \
   -H "Content-Type: application/json" \
-  -d '{
-    "phone": "4917612345678"
-  }'
+  -d '{"phone":"6289685024051@s.whatsapp.net"}'
 ```
+**What it does:** Marks message as read (blue checkmarks appear for sender)
 
 ### 🔹 Chat Management
 
@@ -278,403 +246,357 @@ curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/message/false_1203
 ```bash
 curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/chats
 ```
+**What it does:** Lists all your WhatsApp conversations with last message and unread count
 
-#### Get Chat Messages
+#### Get Chat History
 ```bash
-curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/chat/4917612345678@s.whatsapp.net/messages?limit=50"
-
-# For groups
-curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/chat/120363xxx@g.us/messages?limit=100"
+curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/chat/6289685028129@s.whatsapp.net/messages?limit=50"
 ```
+**What it does:** Retrieves last 50 messages from a specific chat
 
-#### Archive/Unarchive Chat
-```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/chat/archive \
-  -H "Content-Type: application/json" \
-  -d '{
-    "chat_jid": "4917612345678@s.whatsapp.net",
-    "is_archive": true  # true to archive, false to unarchive
-  }'
-```
-
-#### Mute/Unmute Chat
-```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/chat/mute \
-  -H "Content-Type: application/json" \
-  -d '{
-    "chat_jid": "4917612345678@s.whatsapp.net",
-    "is_mute": true  # true to mute, false to unmute
-  }'
-```
-
-#### Pin/Unpin Chat
+#### Pin Chat
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/chat/pin \
   -H "Content-Type: application/json" \
   -d '{
-    "chat_jid": "4917612345678@s.whatsapp.net",
-    "is_pin": true  # true to pin, false to unpin
+    "chat_jid": "6289685028129@s.whatsapp.net",
+    "is_pin": true
   }'
 ```
+**What it does:** Pins chat to top of chat list (max 3 pinned chats in WhatsApp)
 
-### 🔹 Presence & Status
-
-#### Set Online/Offline Status
+#### Unpin Chat
 ```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/presence \
+curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/chat/pin \
   -H "Content-Type: application/json" \
   -d '{
-    "presence": "available"  # Options: available, unavailable
+    "chat_jid": "6289685028129@s.whatsapp.net",
+    "is_pin": false
   }'
 ```
+**What it does:** Unpins chat from top of list
 
-#### Set Typing Status
+### 🔹 User Information
+
+#### Get Contact Info
 ```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/chat-presence \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "4917612345678",
-    "presence": "composing",  # Options: composing, paused
-    "media": "text"  # Options: text, audio
-  }'
+curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/user/info?phone=6289685028129"
 ```
+**What it does:** Gets contact's WhatsApp profile info (name, status, last seen)
 
-### 🔹 Group Management (Complete)
+#### Get Profile Picture
+```bash
+curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/user/avatar?phone=6289685028129&is_preview=false"
+```
+**What it does:** Downloads contact's profile picture
 
-#### Create Group
+#### Get Business Profile
+```bash
+curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/user/business-profile?phone=6289685028129"
+```
+**What it does:** Gets business info (hours, website, description) for WhatsApp Business accounts
+
+#### Get Your Contacts
+```bash
+curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/user/my/contacts
+```
+**What it does:** Lists all contacts from your phone that have WhatsApp
+
+#### Get Your Groups
+```bash
+curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/user/my/groups
+```
+**What it does:** Lists all WhatsApp groups you're a member of
+
+#### Get Your Privacy Settings
+```bash
+curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/user/my/privacy
+```
+**What it does:** Shows your privacy settings (who can see last seen, profile photo, status)
+
+#### Check if Number Has WhatsApp
+```bash
+curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/user/check?phone=6289685028129"
+```
+**What it does:** Checks if a phone number is registered on WhatsApp
+
+### 🔹 Group Management
+
+#### Create New Group
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Project Team 2024",
-    "participants": ["4917612345678", "4917698765432", "4917687654321"]
+    "name": "New Group Name",
+    "participants": ["6289685028129", "628123456789"]
   }'
 ```
+**What it does:** Creates a new group with you as admin and adds specified members
 
-#### Join Group with Invite Link
+#### Get Group Information
+```bash
+curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/group/info?group_id=120363024258186537@g.us"
+```
+**What it does:** Gets group details (members, admins, description, creation date)
+
+#### Get Group Info from Invite Link
+```bash
+curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/group/info-from-link?invite_link=https://chat.whatsapp.com/ABC123DEF456"
+```
+**What it does:** Preview group details before joining (name, member count, description)
+
+#### Join Group via Link
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/join-with-link \
   -H "Content-Type: application/json" \
-  -d '{
-    "invite_link": "https://chat.whatsapp.com/ABC123DEF456"
-  }'
+  -d '{"invite_link": "https://chat.whatsapp.com/ABC123DEF456"}'
 ```
-
-#### Get Group Info
-```bash
-curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/group/info?group_id=120363xxx@g.us"
-```
+**What it does:** Joins a group using an invitation link
 
 #### Leave Group
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/leave \
   -H "Content-Type: application/json" \
-  -d '{
-    "group_id": "120363xxx@g.us"
-  }'
+  -d '{"group_id": "120363024258186537@g.us"}'
 ```
+**What it does:** Exits from a group (can rejoin if you have invite link)
 
-#### Add Participants
+#### Add Members to Group
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/participants/add \
   -H "Content-Type: application/json" \
   -d '{
-    "group_id": "120363xxx@g.us",
-    "participants": ["4917612345678", "4917698765432"]
+    "group_id": "120363024258186537@g.us",
+    "participants": ["6289685028129"]
   }'
 ```
+**What it does:** Adds new members to group (you must be admin)
 
-#### Remove Participants
+#### Remove Members from Group
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/participants/remove \
   -H "Content-Type: application/json" \
   -d '{
-    "group_id": "120363xxx@g.us",
-    "participants": ["4917612345678"]
+    "group_id": "120363024258186537@g.us",
+    "participants": ["6289685028129"]
   }'
 ```
+**What it does:** Kicks members out of group (you must be admin)
 
-#### Promote to Admin
+#### Make Someone Admin
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/participants/promote \
   -H "Content-Type: application/json" \
   -d '{
-    "group_id": "120363xxx@g.us",
-    "participants": ["4917612345678"]
+    "group_id": "120363024258186537@g.us",
+    "participants": ["6289685028129"]
   }'
 ```
+**What it does:** Gives admin powers to member (can add/remove people, change group info)
 
-#### Demote from Admin
+#### Remove Admin Powers
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/participants/demote \
   -H "Content-Type: application/json" \
   -d '{
-    "group_id": "120363xxx@g.us",
-    "participants": ["4917612345678"]
+    "group_id": "120363024258186537@g.us",
+    "participants": ["6289685028129"]
   }'
 ```
-
-#### Set Group Photo
-```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/photo \
-  -H "Content-Type: multipart/form-data" \
-  -F "group_id=120363xxx@g.us" \
-  -F "image=@/path/to/group-photo.jpg"
-```
+**What it does:** Removes admin powers from member (becomes regular member)
 
 #### Change Group Name
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/name \
   -H "Content-Type: application/json" \
   -d '{
-    "group_id": "120363xxx@g.us",
+    "group_id": "120363024258186537@g.us",
     "name": "New Group Name 2024"
   }'
 ```
+**What it does:** Changes the group title that everyone sees
 
-#### Change Group Description
+#### Set Group Description
 ```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/description \
+curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/topic \
   -H "Content-Type: application/json" \
   -d '{
-    "group_id": "120363xxx@g.us",
-    "description": "This is our project team for Q4 2024 initiatives"
+    "group_id": "120363024258186537@g.us",
+    "topic": "This is our new group topic/description"
   }'
 ```
+**What it does:** Sets group description shown when people click group info
 
-#### Toggle Announcement Mode
+#### Change Group Photo
+```bash
+curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/photo \
+  -H "Content-Type: multipart/form-data" \
+  -F "group_id=120363024258186537@g.us" \
+  -F "image=@/path/to/group-photo.jpg"
+```
+**What it does:** Changes group profile picture
+
+#### Enable Announcement Mode
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/announce \
   -H "Content-Type: application/json" \
   -d '{
-    "group_id": "120363xxx@g.us",
+    "group_id": "120363024258186537@g.us",
     "is_announce": true  # true = only admins can send, false = everyone can send
   }'
 ```
+**What it does:** When enabled, only admins can send messages (others can only read)
 
-#### Lock/Unlock Group Settings
+#### Lock Group Settings
 ```bash
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/locked \
   -H "Content-Type: application/json" \
   -d '{
-    "group_id": "120363xxx@g.us",
+    "group_id": "120363024258186537@g.us",
     "is_locked": true  # true = only admins can change info, false = everyone can
   }'
 ```
+**What it does:** When locked, only admins can change group name, photo, and description
 
 #### Get Group Invite Link
 ```bash
-curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/group/invite-link?group_id=120363xxx@g.us"
+curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/group/invite-link?group_id=120363024258186537@g.us"
 ```
+**What it does:** Gets the shareable link people can use to join the group
 
-#### Revoke Group Invite Link
+### 🔹 Configuration Options
+
+#### Deploy at Custom Path
 ```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/invite-link/revoke \
-  -H "Content-Type: application/json" \
-  -d '{
-    "group_id": "120363xxx@g.us"
-  }'
+# If running behind nginx at https://yoursite.com/whatsapp/
+APP_BASE_PATH=/whatsapp
+```
+**What it does:** Allows running the API at a subfolder instead of root domain
+
+#### Auto-Read All Messages
+```bash
+# Automatically mark all incoming messages as read
+WHATSAPP_AUTO_MARK_READ=true
+```
+**What it does:** Automatically sends read receipts (blue checkmarks) for all incoming messages
+
+### 🔹 Webhook Events
+
+#### Group Member Changes
+```json
+{
+  "event": "group.participants",
+  "payload": {
+    "chat_id": "120363402106XXXXX@g.us",
+    "type": "join",  // Someone joined the group
+    "jids": ["6289685XXXXXX@s.whatsapp.net"]
+  }
+}
+```
+**What it does:** Notifies your webhook when people join, leave, or get promoted/demoted in groups
+
+#### Message Delivery Status
+```json
+{
+  "event": "message.ack",
+  "payload": {
+    "message_id": "3EB089B9D6ADD58153C561",
+    "status": "delivered",  // or "read" when they open it
+    "timestamp": "2025-08-03T10:30:00Z"
+  }
+}
+```
+**What it does:** Tells you when messages are delivered (gray checks) or read (blue checks)
+
+#### Message Deleted
+```json
+{
+  "event": "message.delete",
+  "payload": {
+    "message_id": "3EB089B9D6ADD58153C561",
+    "chat_id": "6289685028129@s.whatsapp.net",
+    "original_message": "Original message content",
+    "timestamp": "2025-08-03T10:30:00Z"
+  }
+}
+```
+**What it does:** Notifies when someone deletes a message, includes what the message said
+
+## 💡 Complete Real-World Example
+
+### Step 1: Connect to WhatsApp
+```bash
+curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/app/login
+# Scan the QR code with WhatsApp on your phone
 ```
 
-## 💡 Realistic Usage Example: Complete Workflow
-
-### Step 1: Get All Chats
+### Step 2: See All Your Chats
 ```bash
 curl -X GET https://whatsapp-privateapi-1-503.yourdomain.com/chats
 ```
 
-**Example Response:**
-```json
-{
-  "status": 200,
-  "message": "Success",
-  "data": [
-    {
-      "jid": "4917612345678@s.whatsapp.net",
-      "name": "John Smith",
-      "last_message": "Hey, how's it going?",
-      "last_message_time": "2024-01-15T10:30:00Z",
-      "unread_count": 2
-    },
-    {
-      "jid": "120363028461234567@g.us",
-      "name": "Team Project 2024",
-      "last_message": "Meeting tomorrow at 10",
-      "last_message_time": "2024-01-15T09:15:00Z",
-      "unread_count": 5
-    },
-    {
-      "jid": "4917698765432@s.whatsapp.net",
-      "name": "Sarah Johnson",
-      "last_message": "Document received, thanks!",
-      "last_message_time": "2024-01-14T18:45:00Z",
-      "unread_count": 0
-    }
-  ]
-}
-```
-
-### Step 2: Get Messages from Specific Chat
+### Step 3: Send Message with Typing Effect
 ```bash
-curl -X GET "https://whatsapp-privateapi-1-503.yourdomain.com/chat/4917612345678@s.whatsapp.net/messages?limit=10"
-```
-
-**Example Response:**
-```json
-{
-  "status": 200,
-  "data": {
-    "messages": [
-      {
-        "id": "false_4917612345678@s.whatsapp.net_3EB0C767",
-        "message": "Hey, how's it going?",
-        "from": "4917612345678@s.whatsapp.net",
-        "timestamp": "2024-01-15T10:30:00Z",
-        "type": "text"
-      },
-      {
-        "id": "false_4917612345678@s.whatsapp.net_3EB0C766",
-        "message": "Did you finish the presentation?",
-        "from": "4917612345678@s.whatsapp.net",
-        "timestamp": "2024-01-15T10:29:00Z",
-        "type": "text"
-      }
-    ]
-  }
-}
-```
-
-### Step 3: Reply to Message
-```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/message \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "4917612345678",
-    "message": "Hi John! Doing great, thanks! The presentation is almost ready, will send it to you shortly.",
-    "reply_message_id": "false_4917612345678@s.whatsapp.net_3EB0C767"
-  }'
-```
-
-### Step 4: Send Document
-```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/document \
-  -H "Content-Type: multipart/form-data" \
-  -F "phone=4917612345678" \
-  -F "document=@/home/user/documents/presentation_q4_2024.pdf" \
-  -F "filename=Q4_Presentation_Final.pdf"
-```
-
-### Step 5: Send to Group with Image
-```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/image \
-  -H "Content-Type: multipart/form-data" \
-  -F "phone=120363028461234567@g.us" \
-  -F "caption=📊 Q4 Results are in! Great work team! 🎉" \
-  -F "image=@/home/user/images/q4_results_chart.png"
-```
-
-### Step 6: Create Poll in Group
-```bash
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/poll \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "120363028461234567@g.us",
-    "question": "When should we schedule the next team meeting?",
-    "options": [
-      "Monday 10:00 AM",
-      "Monday 2:00 PM",
-      "Tuesday 10:00 AM",
-      "Tuesday 2:00 PM",
-      "Wednesday 10:00 AM"
-    ],
-    "selectable_count": 0
-  }'
-```
-
-### Step 7: Set Typing Status and Send Message
-```bash
-# Show typing indicator
+# Show you're typing
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/chat-presence \
   -H "Content-Type: application/json" \
-  -d '{
-    "phone": "4917612345678",
-    "presence": "composing",
-    "media": "text"
-  }'
+  -d '{"phone": "6289685028129@s.whatsapp.net", "action": "start"}'
 
-# Wait 2 seconds (simulating typing)
-sleep 2
+sleep 2  # Wait 2 seconds
 
 # Send the message
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/message \
   -H "Content-Type: application/json" \
   -d '{
-    "phone": "4917612345678",
-    "message": "Just reviewed the files. Everything looks perfect! 👍"
+    "phone": "6289685028129@s.whatsapp.net",
+    "message": "Hi! Just checking in on the project status."
   }'
 
 # Stop typing indicator
 curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/send/chat-presence \
   -H "Content-Type: application/json" \
-  -d '{
-    "phone": "4917612345678",
-    "presence": "paused",
-    "media": "text"
-  }'
+  -d '{"phone": "6289685028129@s.whatsapp.net", "action": "stop"}'
 ```
 
-### Step 8: Forward Important Message to Multiple Recipients
+### Step 4: Create and Setup a Group
 ```bash
-# Get message ID from previous chat
-MESSAGE_ID="false_120363028461234567@g.us_3EB0C999"
-
-# Forward to first recipient
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/message/forward \
+# Create group
+curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group \
   -H "Content-Type: application/json" \
   -d '{
-    "message_id": "'$MESSAGE_ID'",
-    "phone": "4917698765432"
+    "name": "Project Team Q1 2025",
+    "participants": ["6289685028129", "628123456789"]
   }'
 
-# Forward to second recipient
-curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/message/forward \
+# Make it announcement only (only admins can post)
+curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/announce \
   -H "Content-Type: application/json" \
   -d '{
-    "message_id": "'$MESSAGE_ID'",
-    "phone": "4917687654321"
+    "group_id": "120363999999999@g.us",
+    "is_announce": true
+  }'
+
+# Lock settings so only admins can change group info
+curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group/locked \
+  -H "Content-Type: application/json" \
+  -d '{
+    "group_id": "120363999999999@g.us",
+    "is_locked": true
   }'
 ```
 
-## 🔧 N8N Integration Example
+## 📝 Quick Reference
 
-```javascript
-// N8N Function Node - Send WhatsApp Message
-const phone = $node["Webhook"].json["phone"];
-const message = $node["Webhook"].json["message"];
+- **Phone Format**: Use international format without + (e.g., 6289685028129)
+- **Personal Chat JID**: Add `@s.whatsapp.net` to phone number
+- **Group JID**: Group IDs end with `@g.us`
+- **Message IDs**: Long alphanumeric strings from message responses
+- **View Once**: Messages/images that disappear after viewing
+- **Announce Mode**: Only group admins can send messages
+- **Locked Group**: Only admins can change group settings
+- **Blue Checkmarks**: Message has been read
+- **Gray Checkmarks**: Message delivered but not read
 
-const response = await $http.request({
-  method: 'POST',
-  url: 'https://whatsapp-privateapi-1-503.yourdomain.com/send/message',
-  body: {
-    phone: phone,
-    message: message
-  },
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+---
 
-return response;
-```
-
-## 📝 Important Notes
-
-- **Phone Format**: Always use international format without + (e.g., 4917612345678)
-- **Group JID Format**: Groups use format 120363xxx@g.us
-- **Personal JID Format**: Personal chats use format phone@s.whatsapp.net
-- **Message IDs**: Format is usually false_JID_UNIQUEID
-- **File Uploads**: Use multipart/form-data for file uploads or base64 for JSON
-- **View Once**: Available for images and videos only
-- **Message Editing**: Only possible within 15 minutes of sending
-- **Reactions**: Empty string removes existing reaction
-
+**Complete API documentation for go-whatsapp-web-multidevice**
