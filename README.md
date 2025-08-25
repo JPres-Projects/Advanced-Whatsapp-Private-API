@@ -2,6 +2,8 @@
 
 A self-hosted REST API that connects to your personal WhatsApp account, allowing you to send and receive messages programmatically from your own phone number. This solution uses the powerful [aldinokemal/go-whatsapp-web-multidevice](https://github.com/aldinokemal/go-whatsapp-web-multidevice) implementation with Docker containerization and Cloudflare Tunnel integration for worldwide accessibility.
 
+**Repository:** [Advanced WhatsApp Private API](https://github.com/JPres-Projects/Advanced-Whatsapp-Private-API)
+
 ## 🎯 Purpose & Use Cases
 
 **Transform your private WhatsApp number into a programmable API:**
@@ -66,43 +68,43 @@ docker pull ghcr.io/aldinokemal/go-whatsapp-web-multidevice:latest
 
 Create Docker Compose configurations for each WhatsApp number:
 
-**For first number (+491633644503):**
+**Example for first number (+491633644503 → using last 3 digits "503"):**
 ```yaml
-# docker-compose-1-503.yml
+# docker-compose-1-503.yml (replace 503 with your number's last 3 digits)
 version: '3.8'
 services:
-  whatsapp-privateapi-1-503:
+  whatsapp-privateapi-1-503:  # Replace 503 with your last 3 digits
     image: ghcr.io/aldinokemal/go-whatsapp-web-multidevice:latest
     ports:
       - "3010:3000"
     volumes:
-      - ./data-1-503:/app/storages  # Persistent session data
+      - ./data-1-503:/app/storages  # Replace 503 with your last 3 digits
     restart: unless-stopped
-    container_name: whatsapp-privateapi-1-503
+    container_name: whatsapp-privateapi-1-503  # Replace 503 with your last 3 digits
 ```
 
-**For second number:**
+**Example for second number (+4915510974808 → using last 3 digits "808"):**
 ```yaml
-# docker-compose-2-808.yml
+# docker-compose-2-808.yml (replace 808 with your number's last 3 digits)
 version: '3.8'
 services:
-  whatsapp-privateapi-2-808:
+  whatsapp-privateapi-2-808:  # Replace 808 with your last 3 digits
     image: ghcr.io/aldinokemal/go-whatsapp-web-multidevice:latest
     ports:
       - "3011:3000"
     volumes:
-      - ./data-2-808:/app/storages  # Persistent session data
+      - ./data-2-808:/app/storages  # Replace 808 with your last 3 digits
     restart: unless-stopped
-    container_name: whatsapp-privateapi-2-808
+    container_name: whatsapp-privateapi-2-808  # Replace 808 with your last 3 digits
 ```
 
 ### Start APIs
 
 ```bash
-# Start first API
+# Start first API (replace 1-503 with your naming)
 docker-compose -f docker-compose-1-503.yml up -d
 
-# Start second API
+# Start second API (replace 2-808 with your naming)
 docker-compose -f docker-compose-2-808.yml up -d
 
 # Verify containers are running
@@ -129,11 +131,11 @@ Invoke-WebRequest https://github.com/cloudflare/cloudflared/releases/latest/down
 # Authenticate with Cloudflare
 .\cloudflared.exe tunnel login
 
-# Create tunnels for each API
-.\cloudflared.exe tunnel create whatsapp-privateapi-1-503
-.\cloudflared.exe tunnel create whatsapp-privateapi-2-808
+# Create tunnels for each API (replace with your naming scheme)
+.\cloudflared.exe tunnel create whatsapp-privateapi-1-503  # Replace 503 with your last 3 digits
+.\cloudflared.exe tunnel create whatsapp-privateapi-2-808  # Replace 808 with your last 3 digits
 
-# Set DNS records
+# Set DNS records (replace with your naming scheme and domain)
 .\cloudflared.exe tunnel route dns whatsapp-privateapi-1-503 whatsapp-privateapi-1-503.yourdomain.com
 .\cloudflared.exe tunnel route dns whatsapp-privateapi-2-808 whatsapp-privateapi-2-808.yourdomain.com
 ```
@@ -153,23 +155,23 @@ cloudflared version
 
 **Create tunnel configurations:**
 ```bash
-# API 1-503 configuration
+# API 1-503 configuration (replace with your naming)
 sudo nano /etc/cloudflared/privateapi-1-503-config.yml
 ```
 
 ```yaml
-tunnel: whatsapp-privateapi-1-503
-credentials-file: /home/ubuntu/.cloudflared/TUNNEL-ID-1.json
+tunnel: whatsapp-privateapi-1-503  # Replace with your tunnel name
+credentials-file: /home/ubuntu/.cloudflared/TUNNEL-ID-1.json  # Replace with actual tunnel ID
 
 ingress:
-  - hostname: whatsapp-privateapi-1-503.yourdomain.com
+  - hostname: whatsapp-privateapi-1-503.yourdomain.com  # Replace with your domain
     service: http://127.0.0.1:3010
   - service: http_status:404
 ```
 
 **Create systemd services:**
 ```bash
-# Service for API 1-503
+# Service for API 1-503 (replace naming throughout)
 sudo tee /etc/systemd/system/cloudflared-1-503.service << 'EOF'
 [Unit]
 Description=Cloudflared 1-503 Tunnel
@@ -186,7 +188,7 @@ RestartSec=10
 WantedBy=multi-user.target
 EOF
 
-# Enable and start service
+# Enable and start service (replace service name with your naming)
 sudo systemctl daemon-reload
 sudo systemctl enable cloudflared-1-503
 sudo systemctl start cloudflared-1-503
@@ -227,11 +229,11 @@ fi
 echo "📦 Updating Docker images..."
 docker pull ghcr.io/aldinokemal/go-whatsapp-web-multidevice:latest
 
-echo "🔄 Restarting API 1-503 (sessions preserved)..."
+echo "🔄 Restarting API 1-503 (sessions preserved, replace with your naming)..."
 docker-compose -f docker-compose-1-503.yml down
 docker-compose -f docker-compose-1-503.yml up -d
 
-echo "🔄 Restarting API 2-808 (sessions preserved)..."
+echo "🔄 Restarting API 2-808 (sessions preserved, replace with your naming)..."
 docker-compose -f docker-compose-2-808.yml down
 docker-compose -f docker-compose-2-808.yml up -d
 
@@ -239,7 +241,7 @@ echo "✅ Update completed!"
 echo "📊 Container status:"
 docker ps
 
-echo "💾 Session data check:"
+echo "💾 Session data check (replace with your naming):"
 ls -la data-1-503/
 ls -la data-2-808/
 ```
@@ -281,7 +283,7 @@ Configure Security Groups to allow:
 ## 📱 Usage Examples
 
 ### Authentication
-1. Visit your API endpoint: `https://whatsapp-privateapi-1-503.yourdomain.com`
+1. Visit your API endpoint: `https://whatsapp-privateapi-1-503.yourdomain.com` (replace with your naming and domain)
 2. Scan QR code with your WhatsApp mobile app
 3. API becomes ready for use
 
@@ -320,21 +322,21 @@ curl -X POST https://whatsapp-privateapi-1-503.yourdomain.com/group \
 
 ### Container Issues
 ```bash
-# Check container status
+# Check container status (replace with your naming)
 docker ps
 docker logs whatsapp-privateapi-1-503
 
-# Restart containers
+# Restart containers (replace with your naming)
 docker-compose -f docker-compose-1-503.yml restart
 ```
 
 ### Tunnel Issues
 ```bash
-# Check tunnel services
+# Check tunnel services (replace with your naming)
 sudo systemctl status cloudflared-1-503
 sudo systemctl status cloudflared-2-808
 
-# Restart tunnel services
+# Restart tunnel services (replace with your naming)
 sudo systemctl restart cloudflared-1-503
 ```
 
@@ -343,23 +345,15 @@ sudo systemctl restart cloudflared-1-503
 - **Connection Timeout**: Check if phone number was used within 14 days
 - **API Not Responding**: Verify container and tunnel status
 
-## 📋 System Requirements
-
-- **OS**: Ubuntu 20.04+ (ARM64 or AMD64)
-- **RAM**: 1GB minimum, 2GB recommended
-- **Storage**: 2GB available space per API instance
-- **Network**: Stable internet connection
-- **Docker**: Latest version with Docker Compose
-
 ## 🛠️ Service Management
 
 ```bash
-# Container management
+# Container management (replace container names with your naming)
 docker ps                                    # List running containers
 docker logs whatsapp-privateapi-1-503       # View container logs
 docker-compose -f docker-compose-1-503.yml restart  # Restart API
 
-# Tunnel management  
+# Tunnel management (replace service names with your naming)
 sudo systemctl status cloudflared-1-503     # Check tunnel status
 sudo systemctl restart cloudflared-1-503    # Restart tunnel
 sudo journalctl -u cloudflared-1-503 -f     # View tunnel logs
@@ -438,6 +432,9 @@ sudo /home/ubuntu/whatsapp-privateapi/update-apis.sh
 
 ### 🔹 Newsletter
 - `POST /newsletter/unfollow` → Unfollow broadcast list
+
+
+👉 Check out the detailed **cURL commands** in the [`api.md`](./api.md) file in this repo!
 
 ## 📄 License
 
