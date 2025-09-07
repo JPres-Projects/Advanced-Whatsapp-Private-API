@@ -1,45 +1,56 @@
 name: Auto Sync with Upstream
 on:
   schedule:
-    - cron: '0 0 * * *'  # Every day at midnight
-  workflow_dispatch:     # Can be triggered manually
+    - cron: '0 0 * * *'  # Run every day at midnight UTC
+  workflow_dispatch:     # Can also be triggered manually from GitHub Actions tab
+
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Download our repository to the GitHub runner
       - name: Checkout repository
         uses: actions/checkout@v3
         
+      # Step 2: Set up Git with bot credentials for commits
       - name: Configure Git
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
+      # Step 3: Add the original repo as "upstream" and download its latest changes
       - name: Add upstream and fetch
         run: |
           git remote add upstream https://github.com/aldinokemal/go-whatsapp-web-multidevice.git
           git fetch upstream
           
+      # Step 4: Merge new code from upstream but preserve our custom README.md
       - name: Merge upstream changes but keep our files
         run: |
-          cp README.md README_backup.md
-          git merge upstream/main --no-edit || true
-          cp README_backup.md README.md
-          rm README_backup.md
-          git checkout upstream/main -- readme.md
-          mv readme.md INTRO.md
+          cp README.md README_backup.md              # Backup our custom README
+          git merge upstream/main --no-edit || true  # Merge new code (ignore conflicts)
+          cp README_backup.md README.md              # Restore our custom README
+          rm README_backup.md                        # Clean up backup file
+          git checkout upstream/main -- readme.md    # Get original readme as reference
+          mv readme.md INTRO.md                      # Rename it to INTRO.md
           
+      # Step 5: Copy releases from upstream repository to ours
       - name: Sync releases
         run: |
+          # Get the latest release tag from the original repository
           LATEST_RELEASE=$(curl -s https://api.github.com/repos/aldinokemal/go-whatsapp-web-multidevice/releases/latest | jq -r '.tag_name')
+          
+          # Check if this release already exists in our repository
           if ! git tag -l | grep -q "$LATEST_RELEASE"; then
+            # Create the same release in our repository
             gh release create "$LATEST_RELEASE" --title "Auto-sync: Release $LATEST_RELEASE" --notes "Automatically synced from upstream repository"
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub provides this token automatically
           
+      # Step 6: Save all changes and push to our repository
       - name: Commit and push changes
         run: |
-          git add .
-          git commit -m "Auto-sync: Code updated, README preserved, INTRO.md updated" || exit 0
-          git push
+          git add .                                                              # Add all changes
+          git commit -m "Auto-sync: Code updated, README preserved, INTRO.md updated" || exit 0  # Commit (or skip if no changes)
+          git push                                                               # Push to our GitHub repository
