@@ -45,11 +45,12 @@ jobs:
           LATEST_RELEASE=$(curl -s https://api.github.com/repos/aldinokemal/go-whatsapp-web-multidevice/releases/latest | jq -r '.tag_name')
           echo "Latest upstream release: $LATEST_RELEASE"
           
-          # Delete existing release if it exists (silently)
-          gh release delete "$LATEST_RELEASE" -y 2>/dev/null || true
+          # Delete existing release if it exists IN OUR REPO
+          gh release delete "$LATEST_RELEASE" --repo "$GITHUB_REPOSITORY" -y 2>/dev/null || true
           
-          # Create fresh release
+          # Create fresh release IN OUR REPO
           gh release create "$LATEST_RELEASE" \
+            --repo "$GITHUB_REPOSITORY" \
             --title "Release $LATEST_RELEASE" \
             --notes "Automatically synced from upstream repository" \
             --latest
