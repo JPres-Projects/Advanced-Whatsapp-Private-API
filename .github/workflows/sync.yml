@@ -3,7 +3,6 @@ on:
   schedule:
     - cron: '0 0 * * *'  # Every day at midnight
   workflow_dispatch:     # Can be triggered manually
-
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -29,6 +28,15 @@ jobs:
           rm README_backup.md
           git checkout upstream/main -- readme.md
           mv readme.md INTRO.md
+          
+      - name: Sync releases
+        run: |
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/aldinokemal/go-whatsapp-web-multidevice/releases/latest | jq -r '.tag_name')
+          if ! git tag -l | grep -q "$LATEST_RELEASE"; then
+            gh release create "$LATEST_RELEASE" --title "Auto-sync: Release $LATEST_RELEASE" --notes "Automatically synced from upstream repository"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Commit and push changes
         run: |
