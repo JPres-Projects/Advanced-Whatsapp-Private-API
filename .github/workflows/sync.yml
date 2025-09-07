@@ -4,6 +4,10 @@ on:
     - cron: '0 0 * * *'  # Run every day at midnight UTC
   workflow_dispatch:     # Can also be triggered manually from GitHub Actions tab
 
+permissions:
+  contents: write    # NEEDED FOR RELEASES!
+  actions: read
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -37,18 +41,20 @@ jobs:
       # Step 5: Copy releases from upstream repository to ours
       - name: Sync releases
         run: |
-          echo "🔍 Getting latest release from upstream..."
+          echo "Creating release with proper permissions..."
           LATEST_RELEASE=$(curl -s https://api.github.com/repos/aldinokemal/go-whatsapp-web-multidevice/releases/latest | jq -r '.tag_name')
-          echo "📦 Latest upstream release: $LATEST_RELEASE"
+          echo "Latest upstream release: $LATEST_RELEASE"
           
-          echo "🏷️ Checking existing GITHUB RELEASES (not tags)..."
-          if ! gh release view "$LATEST_RELEASE" >/dev/null 2>&1; then
-            echo "✅ Creating new release: $LATEST_RELEASE"
-            gh release create "$LATEST_RELEASE" --title "Auto-sync: Release $LATEST_RELEASE" --notes "Automatically synced from upstream repository"
-            echo "🎉 Release created successfully!"
-          else
-            echo "⚠️ Release $LATEST_RELEASE already exists - skipping"
-          fi
+          # Delete existing release if it exists (silently)
+          gh release delete "$LATEST_RELEASE" -y 2>/dev/null || true
+          
+          # Create fresh release
+          gh release create "$LATEST_RELEASE" \
+            --title "Release $LATEST_RELEASE" \
+            --notes "Automatically synced from upstream repository" \
+            --latest
+          
+          echo "Release $LATEST_RELEASE created successfully"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
