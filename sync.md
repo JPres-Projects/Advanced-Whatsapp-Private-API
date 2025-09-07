@@ -30,6 +30,13 @@ Create this file structure in your repository:
 ### 2. Add the workflow content
 Copy the auto-sync workflow code into `.github/workflows/sync.yml`
 
+**IMPORTANT**: The workflow needs proper permissions! Add this at the top:
+```yaml
+permissions:
+  contents: write    # Required for creating releases!
+  actions: read
+```
+
 ### 3. Commit and push
 ```bash
 git add .github/workflows/sync.yml
@@ -42,6 +49,12 @@ git push
 - Click the **Actions** tab
 - You should see "Auto Sync with Upstream" workflow
 - Click "Run workflow" to test it manually
+- Check the **Releases** tab to see if releases appear
+
+### 5. Common Issues
+- **"Permission denied"**: Add `permissions: contents: write` to the workflow
+- **"Resource not accessible"**: Make sure you're targeting your own repository with `--repo "$GITHUB_REPOSITORY"`
+- **Releases not visible**: This is sometimes a GitHub UI bug - releases exist but don't display
 
 ## File locations
 
