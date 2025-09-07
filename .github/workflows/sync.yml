@@ -37,16 +37,22 @@ jobs:
       # Step 5: Copy releases from upstream repository to ours
       - name: Sync releases
         run: |
-          # Get the latest release tag from the original repository
+          echo "🔍 Getting latest release from upstream..."
           LATEST_RELEASE=$(curl -s https://api.github.com/repos/aldinokemal/go-whatsapp-web-multidevice/releases/latest | jq -r '.tag_name')
+          echo "📦 Latest upstream release: $LATEST_RELEASE"
           
-          # Check if this release already exists in our repository
+          echo "🏷️ Checking existing tags in our repo..."
+          git tag -l
+          
           if ! git tag -l | grep -q "$LATEST_RELEASE"; then
-            # Create the same release in our repository
+            echo "✅ Creating new release: $LATEST_RELEASE"
             gh release create "$LATEST_RELEASE" --title "Auto-sync: Release $LATEST_RELEASE" --notes "Automatically synced from upstream repository"
+            echo "🎉 Release created successfully!"
+          else
+            echo "⚠️ Release $LATEST_RELEASE already exists - skipping"
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub provides this token automatically
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       # Step 6: Save all changes and push to our repository
       - name: Commit and push changes
