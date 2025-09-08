@@ -218,7 +218,7 @@ nano /home/ubuntu/whatsapp-privateapi/update-apis.sh
 #!/bin/bash
 
 echo "🔄 WhatsApp APIs Update started..."
-cd /home/ubuntu/whatsapp-privateapi
+cd /home/ubuntu/programs/whatsapp-privateapi
 
 # Verify Docker access
 if ! docker ps > /dev/null 2>&1; then
@@ -229,21 +229,36 @@ fi
 echo "📦 Updating Docker images..."
 docker pull ghcr.io/aldinokemal/go-whatsapp-web-multidevice:latest
 
-echo "🔄 Restarting API 1-503 (sessions preserved, replace with your naming)..."
+echo "⏹️  Stopping both APIs first (to avoid network conflicts)..."
+echo "   → Stopping API 1-503..."
 docker-compose -f docker-compose-1-503.yml down
-docker-compose -f docker-compose-1-503.yml up -d
-
-echo "🔄 Restarting API 2-808 (sessions preserved, replace with your naming)..."
+echo "   → Stopping API 2-808..."
 docker-compose -f docker-compose-2-808.yml down
+
+echo "🔄 Starting both APIs with updated images (sessions preserved)..."
+echo "   → Starting API 1-503..."
+docker-compose -f docker-compose-1-503.yml up -d
+echo "   → Starting API 2-808..."
 docker-compose -f docker-compose-2-808.yml up -d
 
-echo "✅ Update completed!"
-echo "📊 Container status:"
-docker ps
+echo "⏳ Waiting for containers to be ready..."
+sleep 5
 
-echo "💾 Session data check (replace with your naming):"
-ls -la data-1-503/
-ls -la data-2-808/
+echo "✅ Update completed successfully!"
+echo "📊 Container status:"
+docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" | grep whatsapp
+
+echo "💾 Session data check:"
+echo "API 1-503 sessions:"
+ls -la data-1-503/ | head -5
+echo "..."
+echo "API 2-808 sessions:"
+ls -la data-2-808/ | head -5
+echo "..."
+
+echo "🌐 APIs are accessible on:"
+echo "   → API 1-503: http://localhost:3010"
+echo "   → API 2-808: http://localhost:3011"
 ```
 
 **Make executable and set up automated updates:**
