@@ -38,24 +38,34 @@ jobs:
           git checkout upstream/main -- readme.md    # Get original readme as reference
           mv readme.md INTRO.md                      # Rename it to INTRO.md
           
-      # Step 5: Copy releases from upstream repository to ours
+      # Step 5: Copy releases from upstream repository to ours if they are new
       - name: Sync releases
         run: |
-          echo "Creating release with proper permissions..."
-          LATEST_RELEASE=$(curl -s https://api.github.com/repos/aldinokemal/go-whatsapp-web-multidevice/releases/latest | jq -r '.tag_name')
-          echo "Latest upstream release: $LATEST_RELEASE"
+          # Get the latest release tag from the upstream repository
+          LATEST_UPSTREAM_TAG=$(curl -s https://api.github.com/repos/aldinokemal/go-whatsapp-web-multidevice/releases/latest | jq -r '.tag_name')
           
-          # Delete existing release if it exists IN OUR REPO
-          gh release delete "$LATEST_RELEASE" --repo "$GITHUB_REPOSITORY" -y 2>/dev/null || true
+          if [ -z "$LATEST_UPSTREAM_TAG" ] || [ "$LATEST_UPSTREAM_TAG" == "null" ]; then
+            echo "Could not fetch latest release tag from upstream. Exiting."
+            exit 1
+          fi
           
-          # Create fresh release IN OUR REPO
-          gh release create "$LATEST_RELEASE" \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "Release $LATEST_RELEASE" \
-            --notes "Automatically synced from upstream repository" \
-            --latest
-          
-          echo "Release $LATEST_RELEASE created successfully"
+          echo "Latest upstream release tag is: $LATEST_UPSTREAM_TAG"
+
+          # Check if a release with this tag already exists in our repository.
+          # The command 'gh release view' will fail if the tag does not exist.
+          if gh release view "$LATEST_UPSTREAM_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # If the command succeeds, the release already exists.
+            echo "Release '$LATEST_UPSTREAM_TAG' already exists in this repository. No action needed."
+          else
+            # If the command fails, the release does not exist, so we create it.
+            echo "Release '$LATEST_UPSTREAM_TAG' not found. Creating new release."
+            gh release create "$LATEST_UPSTREAM_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Release $LATEST_UPSTREAM_TAG" \
+              --notes "Automatically synced from upstream repository" \
+              --latest
+            echo "Successfully created release '$LATEST_UPSTREAM_TAG'."
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
