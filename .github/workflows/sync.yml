@@ -32,7 +32,7 @@ jobs:
       - name: Merge upstream changes but keep our files
         run: |
           cp README.md README_backup.md              # Backup our custom README
-          git merge upstream/main --no-edit || true  # Merge new code (ignore conflicts)
+          git merge upstream/main --no-edit --allow-unrelated-histories -X theirs || true  # Merge new code (ignore conflicts)
           cp README_backup.md README.md              # Restore our custom README
           rm README_backup.md                        # Clean up backup file
           git checkout upstream/main -- readme.md    # Get original readme as reference
@@ -42,7 +42,7 @@ jobs:
       - name: Sync releases
         run: |
           # Get the latest release tag from the upstream repository
-          LATEST_UPSTREAM_TAG=$(curl -s https://api.github.com/repos/aldinokemal/go-whatsapp-web-multidevice/releases/latest | jq -r '.tag_name')
+          LATEST_UPSTREAM_TAG=$(gh api repos/aldinokemal/go-whatsapp-web-multidevice/releases/latest --jq '.tag_name')
           
           if [ -z "$LATEST_UPSTREAM_TAG" ] || [ "$LATEST_UPSTREAM_TAG" == "null" ]; then
             echo "Could not fetch latest release tag from upstream. Exiting."
