@@ -29,8 +29,9 @@ func init() {
 func mcpServer(_ *cobra.Command, _ []string) {
 	// Set auto reconnect to whatsapp server after booting
 	go helpers.SetAutoConnectAfterBooting(appUsecase)
-	// Set auto reconnect checking
-	go helpers.SetAutoReconnectChecking(whatsappCli)
+
+	// Set auto reconnect checking with a valid client reference
+	startAutoReconnectCheckerIfClientAvailable()
 
 	// Create MCP server with capabilities
 	mcpServer := server.NewMCPServer(
@@ -43,6 +44,15 @@ func mcpServer(_ *cobra.Command, _ []string) {
 	// Add all WhatsApp tools
 	sendHandler := mcp.InitMcpSend(sendUsecase)
 	sendHandler.AddSendTools(mcpServer)
+
+	queryHandler := mcp.InitMcpQuery(chatUsecase, userUsecase, messageUsecase)
+	queryHandler.AddQueryTools(mcpServer)
+
+	appHandler := mcp.InitMcpApp(appUsecase)
+	appHandler.AddAppTools(mcpServer)
+
+	groupHandler := mcp.InitMcpGroup(groupUsecase)
+	groupHandler.AddGroupTools(mcpServer)
 
 	// Create SSE server
 	sseServer := server.NewSSEServer(

@@ -13,20 +13,28 @@ import (
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
-// maxDuration represents the maximum allowed duration in seconds (uint32 max).
-const maxDuration int64 = 4294967295
+// ValidDurationValues contains WhatsApp's allowed disappearing message durations in seconds.
+// 0 = no expiry/disabled, 86400 = 24 hours, 604800 = 7 days, 7776000 = 90 days.
+var ValidDurationValues = []int{
+	0,       // No expiry / disabled
+	86400,   // 24 hours
+	604800,  // 7 days
+	7776000, // 90 days
+}
 
-// validateDuration validates that the duration pointer is nil or within acceptable bounds.
+// validateDuration validates that the duration pointer is nil or one of WhatsApp's standard values.
 func validateDuration(dur *int) error {
 	if dur == nil {
 		return nil
 	}
-	if *dur < 0 || int64(*dur) > int64(maxDuration) {
-		return pkgError.ValidationError(
-			fmt.Sprintf("duration must be between 0 and %d seconds (0 means no expiry)", maxDuration),
-		)
+	for _, valid := range ValidDurationValues {
+		if *dur == valid {
+			return nil
+		}
 	}
-	return nil
+	return pkgError.ValidationError(
+		"duration must be one of: 0 (no expiry), 86400 (24h), 604800 (7d), 7776000 (90d)",
+	)
 }
 
 // validatePhoneNumber validates that the phone number is in international format (not starting with 0)
@@ -109,6 +117,61 @@ func ValidateSendImage(ctx context.Context, request domainSend.ImageRequest) err
 		err := validation.Validate(*request.ImageURL, is.URL)
 		if err != nil {
 			return pkgError.ValidationError("ImageURL must be a valid URL")
+		}
+	}
+
+	// Validate duration
+	if err := validateDuration(request.Duration); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ValidateSendSticker(ctx context.Context, request domainSend.StickerRequest) error {
+	err := validation.ValidateStructWithContext(ctx, &request,
+		validation.Field(&request.Phone, validation.Required),
+	)
+
+	if err != nil {
+		return pkgError.ValidationError(err.Error())
+	}
+
+	// Custom validation for phone number format
+	if err := validatePhoneNumber(request.Phone); err != nil {
+		return err
+	}
+
+	// Either Sticker or StickerURL must be provided
+	if request.Sticker == nil && (request.StickerURL == nil || *request.StickerURL == "") {
+		return pkgError.ValidationError("either Sticker or StickerURL must be provided")
+	}
+
+	// Both cannot be provided at the same time
+	if request.Sticker != nil && request.StickerURL != nil && *request.StickerURL != "" {
+		return pkgError.ValidationError("cannot provide both Sticker file and StickerURL")
+	}
+
+	// Validate file type if sticker file is provided
+	if request.Sticker != nil {
+		availableMimes := map[string]bool{
+			"image/jpeg": true,
+			"image/jpg":  true,
+			"image/png":  true,
+			"image/webp": true, // Also accept WebP directly
+			"image/gif":  true, // Support GIF for animated stickers
+		}
+
+		if !availableMimes[request.Sticker.Header.Get("Content-Type")] {
+			return pkgError.ValidationError("your sticker is not allowed. please use jpg/jpeg/png/webp/gif")
+		}
+	}
+
+	// Validate URL if provided
+	if request.StickerURL != nil && *request.StickerURL != "" {
+		err := validation.Validate(*request.StickerURL, is.URL)
+		if err != nil {
+			return pkgError.ValidationError("StickerURL must be a valid URL")
 		}
 	}
 

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"mime"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -22,6 +23,70 @@ import (
 	pkgError "github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/error"
 	"go.mau.fi/whatsmeow"
 )
+
+var knownDocumentMIMEByExtension = map[string]string{
+	".doc":  "application/msword",
+	".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+	".xls":  "application/vnd.ms-excel",
+	".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+	".ppt":  "application/vnd.ms-powerpoint",
+	".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+}
+
+var knownDocumentExtensionByMIME map[string]string
+
+func init() {
+	knownDocumentExtensionByMIME = make(map[string]string, len(knownDocumentMIMEByExtension))
+	for ext, mimeType := range knownDocumentMIMEByExtension {
+		knownDocumentExtensionByMIME[strings.ToLower(mimeType)] = ext
+	}
+}
+
+func resolveKnownDocumentMIME(ext string) (string, bool) {
+	ext = strings.ToLower(ext)
+	if !strings.HasPrefix(ext, ".") {
+		ext = "." + ext
+	}
+	mimeType, ok := knownDocumentMIMEByExtension[ext]
+	return mimeType, ok
+}
+
+func resolveKnownDocumentExtension(mimeType string) (string, bool) {
+	ext, ok := knownDocumentExtensionByMIME[strings.ToLower(mimeType)]
+	return ext, ok
+}
+
+// KnownDocumentMIMEByExtension returns a known MIME type for a given Office document extension.
+func KnownDocumentMIMEByExtension(ext string) (string, bool) {
+	return resolveKnownDocumentMIME(ext)
+}
+
+// KnownDocumentExtensionByMIME returns a known Office document extension for a given MIME type.
+func KnownDocumentExtensionByMIME(mimeType string) (string, bool) {
+	return resolveKnownDocumentExtension(mimeType)
+}
+
+func determineMediaExtension(originalFilename, mimeType string) string {
+	if originalFilename != "" {
+		if ext := filepath.Ext(originalFilename); ext != "" {
+			return ext
+		}
+	}
+
+	if ext, ok := resolveKnownDocumentExtension(mimeType); ok {
+		return ext
+	}
+
+	if ext, err := mime.ExtensionsByType(mimeType); err == nil && len(ext) > 0 {
+		return ext[0]
+	}
+
+	if parts := strings.Split(mimeType, "/"); len(parts) > 1 {
+		return "." + parts[len(parts)-1]
+	}
+
+	return ""
+}
 
 // ExtractMessageTextFromProto extracts text content from a WhatsApp proto message
 func ExtractMessageTextFromProto(msg *waE2E.Message) string {
@@ -167,14 +232,16 @@ func ExtractMessageTextFromEvent(evt *events.Message) string {
 			messageText = "📊 " + messageText
 		}
 	} else if pollMessageV4 := evt.Message.GetPollCreationMessageV4(); pollMessageV4 != nil {
-		messageText = pollMessageV4.GetMessage().GetConversation()
+		if pollMessage := pollMessageV4.GetMessage(); pollMessage != nil {
+			messageText = pollMessage.GetConversation()
+		}
 		if messageText == "" {
 			messageText = "📊 Poll"
 		} else {
 			messageText = "📊 " + messageText
 		}
 	} else if pollMessageV5 := evt.Message.GetPollCreationMessageV5(); pollMessageV5 != nil {
-		messageText = pollMessageV5.GetMessage().GetConversation()
+		messageText = pollMessageV5.GetName()
 		if messageText == "" {
 			messageText = "📊 Poll"
 		} else {
@@ -204,6 +271,14 @@ func ExtractMediaInfo(msg *waE2E.Message) (mediaType string, filename string, ur
 		return "video", filename,
 			vid.GetURL(), vid.GetMediaKey(), vid.GetFileSHA256(),
 			vid.GetFileEncSHA256(), vid.GetFileLength()
+	}
+
+	// Check for PTV (video note) message - circular video messages
+	if ptv := msg.GetPtvMessage(); ptv != nil {
+		filename = GenerateMediaFilename("video_note", "mp4", ptv.GetCaption())
+		return "video_note", filename,
+			ptv.GetURL(), ptv.GetMediaKey(), ptv.GetFileSHA256(),
+			ptv.GetFileEncSHA256(), ptv.GetFileLength()
 	}
 
 	// Check for audio message
@@ -490,6 +565,8 @@ func ExtractMedia(ctx context.Context, client *whatsmeow.Client, storageLocation
 		return extractedMedia, fmt.Errorf("file size exceeds the maximum limit of %d bytes", maxFileSize)
 	}
 
+	var originalFilename string
+
 	switch media := mediaFile.(type) {
 	case *waE2E.ImageMessage:
 		extractedMedia.MimeType = media.GetMimetype()
@@ -504,14 +581,10 @@ func ExtractMedia(ctx context.Context, client *whatsmeow.Client, storageLocation
 	case *waE2E.DocumentMessage:
 		extractedMedia.MimeType = media.GetMimetype()
 		extractedMedia.Caption = media.GetCaption()
+		originalFilename = media.GetFileName()
 	}
 
-	var extension string
-	if ext, err := mime.ExtensionsByType(extractedMedia.MimeType); err == nil && len(ext) > 0 {
-		extension = ext[0]
-	} else if parts := strings.Split(extractedMedia.MimeType, "/"); len(parts) > 1 {
-		extension = "." + parts[len(parts)-1]
-	}
+	extension := determineMediaExtension(originalFilename, extractedMedia.MimeType)
 
 	extractedMedia.MediaPath = fmt.Sprintf("%s/%d-%s%s", storageLocation, time.Now().Unix(), uuid.NewString(), extension)
 	err = os.WriteFile(extractedMedia.MediaPath, data, 0600)
@@ -538,7 +611,7 @@ func SanitizePhone(phone *string) {
 func IsOnWhatsapp(client *whatsmeow.Client, jid string) bool {
 	// only check if the jid a user with @s.whatsapp.net
 	if strings.Contains(jid, "@s.whatsapp.net") {
-		data, err := client.IsOnWhatsApp([]string{jid})
+		data, err := client.IsOnWhatsApp(context.Background(), []string{jid})
 		if err != nil {
 			logrus.Error("Failed to check if user is on whatsapp: ", err)
 			return false

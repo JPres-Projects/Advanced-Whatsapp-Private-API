@@ -73,11 +73,13 @@
         <send-file max-file-size="{{ .MaxFileSize }}"></send-file>
 
         <send-video max-video-size="{{ .MaxVideoSize }}"></send-video>
+        <send-sticker></send-sticker>
         <send-contact></send-contact>
-        <send-location></send-location>
 
+        <send-location></send-location>
         <send-audio></send-audio>
         <send-poll></send-poll>
+        
         <send-presence></send-presence>
         
         <send-chat-presence></send-chat-presence>
@@ -144,6 +146,7 @@
 
     <div class="ui three column doubling grid cards">
         <chat-pin-manager></chat-pin-manager>
+        <chat-disappearing-manager></chat-disappearing-manager>
         <chat-list></chat-list>
         <chat-messages></chat-messages>
     </div>
@@ -190,6 +193,7 @@
     import SendImage from "{{ .AppBasePath }}/components/SendImage.js";
     import SendFile from "{{ .AppBasePath }}/components/SendFile.js";
     import SendVideo from "{{ .AppBasePath }}/components/SendVideo.js";
+    import SendSticker from "{{ .AppBasePath }}/components/SendSticker.js";
     import SendLink from "{{ .AppBasePath }}/components/SendLink.js";
     import SendContact from "{{ .AppBasePath }}/components/SendContact.js";
     import SendLocation from "{{ .AppBasePath }}/components/SendLocation.js";
@@ -224,6 +228,7 @@
     import AccountUserCheck from "{{ .AppBasePath }}/components/AccountUserCheck.js";
     import AccountBusinessProfile from "{{ .AppBasePath }}/components/AccountBusinessProfile.js";
     import ChatPinManager from "{{ .AppBasePath }}/components/ChatPinManager.js";
+    import ChatDisappearingManager from "{{ .AppBasePath }}/components/ChatDisappearingManager.js";
     import ChatList from "{{ .AppBasePath }}/components/ChatList.js";
     import ChatMessages from "{{ .AppBasePath }}/components/ChatMessages.js";
 
@@ -256,12 +261,12 @@
     Vue.createApp({
         components: {
             AppLogin, AppLoginWithCode, AppLogout, AppReconnect,
-            SendMessage, SendImage, SendFile, SendVideo, SendLink, SendContact, SendLocation, SendAudio, SendPoll, SendPresence, SendChatPresence,
+            SendMessage, SendImage, SendFile, SendVideo, SendSticker, SendLink, SendContact, SendLocation, SendAudio, SendPoll, SendPresence, SendChatPresence,
             MessageDelete, MessageUpdate, MessageReact, MessageRevoke, MessageRead,
             GroupList, GroupCreate, GroupJoinWithLink, GroupInfoFromLink, GroupAddParticipants, GroupSetPhoto, GroupSetName, GroupSetLocked, GroupSetAnnounce, GroupSetTopic, GroupGetInviteLink, GroupInfo,
             NewsletterList,
             AccountAvatar, AccountUserInfo, AccountPrivacy, AccountChangeAvatar, AccountContact, AccountChangePushName, AccountUserCheck, AccountBusinessProfile,
-            ChatPinManager, ChatList, ChatMessages
+            ChatPinManager, ChatDisappearingManager, ChatList, ChatMessages
         },
         delimiters: ['[[', ']]'],
         data() {
