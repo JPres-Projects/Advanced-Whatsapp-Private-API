@@ -33,6 +33,12 @@ jobs:
         run: |
           cp README.md README_backup.md              # Backup our custom README
           git merge upstream/main --no-edit --allow-unrelated-histories -X theirs || true  # Merge new code (ignore conflicts)
+          
+          # --- FIX: REMOVE FOREIGN WORKFLOWS ---
+          git rm -rf .github/workflows/ 2>/dev/null || true
+          git checkout ${{ github.sha }} -- .github/workflows/sync.yml || git checkout ${{ github.sha }} -- .github/workflows/sync.yaml
+          # -------------------------------------
+
           cp README_backup.md README.md              # Restore our custom README
           rm README_backup.md                        # Clean up backup file
           git checkout upstream/main -- readme.md    # Get original readme as reference
